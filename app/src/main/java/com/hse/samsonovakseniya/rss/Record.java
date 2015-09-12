@@ -12,4 +12,9 @@ public interface Record {
     public String getDescription();
     public Date getDate();
 
+    public void setOrigin(String origin);
+    public void setTitle(String title);
+    public void setDescription(String description);
+    public void setDate(Date date);
+
 }
