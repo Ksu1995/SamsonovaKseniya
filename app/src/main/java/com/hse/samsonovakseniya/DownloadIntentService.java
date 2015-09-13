@@ -78,14 +78,13 @@ public class DownloadIntentService extends IntentService {
                             case XmlPullParser.START_TAG:
                                 Log.i(TAG, "START_TAG" + xmlPullParser.getName());
                                 currentTag = xmlPullParser.getName();
-                                if (xmlPullParser.getName().equals("item")) {
+                                if (currentTag.equals("item")) {
                                     record = new NewsRecord();
-                                } else if (xmlPullParser.getName().equals("title")) {
-                                    //record.setTitle(xmlPullParser.getText());
-                                } else if (xmlPullParser.getName().equals("description")) {
-                                    //record.setDescription(xmlPullParser.getText());
-                                } else if (xmlPullParser.getName().equals("pubDate")) {
-                                    //record.setDate(new SimpleDateFormat().parse(xmlPullParser.getText()));
+                                    Log.i(TAG, "ITEM " + currentTag + xmlPullParser.getAttributeCount());
+                                }
+                                if (record != null && currentTag.equals("enclosure")) {
+                                    record.setImageUrl(xmlPullParser.getAttributeValue(null, "url"));//null
+                                    Log.i(TAG, "URL " + currentTag + xmlPullParser.getAttributeValue(null, "url"));//-1
                                 }
                                 break;
                             case XmlPullParser.END_TAG:

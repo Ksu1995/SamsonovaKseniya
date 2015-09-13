@@ -1,5 +1,6 @@
 package com.hse.samsonovakseniya.rss;
 
+import android.graphics.Bitmap;
 import android.os.Parcelable;
 
 import java.util.Comparator;
@@ -14,10 +15,13 @@ public interface Record extends Parcelable, Comparable {
     public String getTitle();
     public String getDescription();
     public Date getDate();
+    public String getImageUrl();
+    //public Bitmap getImage();
 
     public void setOrigin(String origin);
     public void setTitle(String title);
     public void setDescription(String description);
     public void setDate(Date date);
+    public void setImageUrl(String url);
 
 }

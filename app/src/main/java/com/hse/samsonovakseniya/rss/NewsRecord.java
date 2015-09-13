@@ -1,8 +1,15 @@
 package com.hse.samsonovakseniya.rss;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import java.io.BufferedInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -16,19 +23,26 @@ public class NewsRecord implements Record {
     private String mTitle;
     private String mDescription;
     private Date mDate;
+    private String mImageUrl;
+    //private Bitmap mImage;
 
     public NewsRecord() {
         mOrigin = "";
         mTitle = "";
         mDescription = "";
         mDate = new Date();
+        mImageUrl = "";
+       // mImage = null;
     }
 
-    public NewsRecord(String origin, String title, String description, Date date){
+    public NewsRecord(String origin, String title, String description, Date date, String imageUrl){
         mOrigin = origin;
         mTitle = title;
         mDescription = description;
         mDate = date;
+        mImageUrl = imageUrl;
+        //createImageFromUrl();
+
     }
 
     @Override
@@ -61,6 +75,15 @@ public class NewsRecord implements Record {
     }
 
     @Override
+    public String getImageUrl() {
+        return mImageUrl;
+    }
+
+   /* public Bitmap getImage() {
+        return mImage;
+    }*/
+
+    @Override
     public void setOrigin(String origin) {
         mOrigin = origin;
     }
@@ -81,6 +104,12 @@ public class NewsRecord implements Record {
     }
 
     @Override
+    public void setImageUrl(String url) {
+        mImageUrl = url;
+        //createImageFromUrl();
+    }
+
+    @Override
     public int describeContents() {
         return 0;
     }
@@ -90,7 +119,8 @@ public class NewsRecord implements Record {
         dest.writeStringArray(new String[] {mOrigin,
                 mTitle,
                 mDescription,
-                mDate.toString()});
+                new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss Z").format(mDate),
+                mImageUrl});
 
     }
     public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {
@@ -104,7 +134,7 @@ public class NewsRecord implements Record {
     };
 
     private NewsRecord(Parcel in){
-        String[] data = new String[3];
+        String[] data = new String[5];
 
         in.readStringArray(data);
         mOrigin = data[0];
@@ -115,6 +145,8 @@ public class NewsRecord implements Record {
         } catch (ParseException e) {
             e.printStackTrace();
         }
+        mImageUrl = data[4];
+        //createImageFromUrl();
     }
 
     @Override

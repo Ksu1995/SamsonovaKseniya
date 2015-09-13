@@ -47,21 +47,10 @@ public class NewsActivity extends Activity implements DownloadResultsReceiver.Re
         mProgress = (ProgressBar) findViewById(R.id.progressBar);
         mReceiver = new DownloadResultsReceiver(new Handler());
         mReceiver.setReceiver(this);
-        //List<Record> records = new ArrayList<>();
-
-
-        /*RecyclerView recyclerView = (RecyclerView)findViewById(R.id.recyclerView);
-        RecyclerViewAdapter adapter = new RecyclerViewAdapter(records);
-        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
-        RecyclerView.ItemAnimator itemAnimator = new DefaultItemAnimator();
-
-        recyclerView.setAdapter(adapter);
-        recyclerView.setLayoutManager(layoutManager);
-        recyclerView.setItemAnimator(itemAnimator);*/
         Intent intent = new Intent(getApplicationContext(), DownloadIntentService.class);
         intent.putExtra(DownloadIntentService.URLs_EXTRA, new String[] {
-                "http://lenta.ru/rss",
-                "http://www.gazeta.ru/export/rss/lenta.xml"});
+                "http://lenta.ru/rss"});//,
+                //"http://www.gazeta.ru/export/rss/lenta.xml"});
         intent.putExtra(DownloadIntentService.RECEIVER, mReceiver);
         startService(intent);
     }
@@ -114,11 +103,8 @@ public class NewsActivity extends Activity implements DownloadResultsReceiver.Re
                 mRecyclerView = (RecyclerView)findViewById(R.id.recyclerView);
                 mRecords = data.
                         <Record>getParcelableArrayList(DownloadIntentService.NEWS_RECORDS);
-                for (int i = 0; i < mRecords.size(); i++){
-                    Log.i("rec ", mRecords.get(i).getTitle());
-                }
                 Collections.sort(mRecords);
-                RecyclerViewAdapter adapter = new RecyclerViewAdapter(mRecords, this);
+                RecyclerViewAdapter adapter = new RecyclerViewAdapter(mRecords, this, getApplicationContext());
                 LinearLayoutManager layoutManager = new LinearLayoutManager(NewsActivity.this);
                 RecyclerView.ItemAnimator itemAnimator = new DefaultItemAnimator();
                 mRecyclerView.setAdapter(adapter);
@@ -133,6 +119,7 @@ public class NewsActivity extends Activity implements DownloadResultsReceiver.Re
     @Override
     public void onClick(View v) {
         Intent intent = new Intent(v.getContext(), AdvancedNewsRecordActivity.class);
+        Log.i("INDEX", "" + mRecyclerView.indexOfChild(v));
         intent.putExtra(AdvancedNewsRecordActivity.RECORD, mRecords.get(mRecyclerView.indexOfChild(v)));
         startActivity(intent);
     }
