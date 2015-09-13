@@ -1,15 +1,9 @@
 package com.hse.samsonovakseniya.rss;
 
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.support.annotation.NonNull;
 
-import java.io.BufferedInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -24,7 +18,6 @@ public class NewsRecord implements Record {
     private String mDescription;
     private Date mDate;
     private String mImageUrl;
-    //private Bitmap mImage;
 
     public NewsRecord() {
         mOrigin = "";
@@ -32,17 +25,6 @@ public class NewsRecord implements Record {
         mDescription = "";
         mDate = new Date();
         mImageUrl = "";
-       // mImage = null;
-    }
-
-    public NewsRecord(String origin, String title, String description, Date date, String imageUrl){
-        mOrigin = origin;
-        mTitle = title;
-        mDescription = description;
-        mDate = date;
-        mImageUrl = imageUrl;
-        //createImageFromUrl();
-
     }
 
     @Override
@@ -146,11 +128,10 @@ public class NewsRecord implements Record {
             e.printStackTrace();
         }
         mImageUrl = data[4];
-        //createImageFromUrl();
     }
 
     @Override
-    public int compareTo(Object another) {
+    public int compareTo(@NonNull Object another) {
         Date datel =  this.getDate();
         Date dater = ((NewsRecord) another).getDate();
         return dater.compareTo(datel);

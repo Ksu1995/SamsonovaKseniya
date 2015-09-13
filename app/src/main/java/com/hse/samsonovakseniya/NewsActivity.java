@@ -11,7 +11,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
-import android.widget.Toast;
 
 import com.hse.samsonovakseniya.gui.RecyclerViewAdapter;
 import com.hse.samsonovakseniya.rss.Record;
@@ -22,8 +21,6 @@ public class NewsActivity extends Activity implements DownloadResultsReceiver.Re
 
     private DownloadResultsReceiver mReceiver;
     private ProgressBar mProgress;
-    private RecyclerView mRecyclerView;
-    private List<Record> mRecords;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,7 +30,7 @@ public class NewsActivity extends Activity implements DownloadResultsReceiver.Re
         mReceiver = new DownloadResultsReceiver(new Handler());
         mReceiver.setReceiver(this);
         Intent intent = new Intent(getApplicationContext(), DownloadIntentService.class);
-        intent.putExtra(DownloadIntentService.URLs_EXTRA, new String[] {
+        intent.putExtra(DownloadIntentService.URLs_EXTRA, new String[]{
                 "http://lenta.ru/rss", "http://www.gazeta.ru/export/rss/lenta.xml"});
         intent.putExtra(DownloadIntentService.RECEIVER, mReceiver);
         startService(intent);
@@ -79,14 +76,12 @@ public class NewsActivity extends Activity implements DownloadResultsReceiver.Re
         switch (resultCode) {
             case DownloadIntentService.STATUS_RUNNING :
                 mProgress.setVisibility(View.VISIBLE);
-                Toast.makeText(this, "Service started with data: "
-                             , Toast.LENGTH_SHORT).show();
                 break;
             case DownloadIntentService.STATUS_FINISHED :
                 mProgress.setVisibility(View.INVISIBLE);
-                mRecyclerView = (RecyclerView)findViewById(R.id.recyclerView);
-                mRecords = data.
-                        <Record>getParcelableArrayList(DownloadIntentService.NEWS_RECORDS);
+                RecyclerView mRecyclerView = (RecyclerView) findViewById(R.id.recyclerView);
+                List<Record> mRecords = data.
+                        getParcelableArrayList(DownloadIntentService.NEWS_RECORDS);
                 Collections.sort(mRecords);
                 RecyclerViewAdapter adapter = new RecyclerViewAdapter(mRecords, getApplicationContext());
                 LinearLayoutManager layoutManager = new LinearLayoutManager(NewsActivity.this);
@@ -94,8 +89,6 @@ public class NewsActivity extends Activity implements DownloadResultsReceiver.Re
                 mRecyclerView.setAdapter(adapter);
                 mRecyclerView.setLayoutManager(layoutManager);
                 mRecyclerView.setItemAnimator(itemAnimator);
-                Toast.makeText(this, "Service finished with data: "
-                        , Toast.LENGTH_SHORT).show();
                 break;
         }
     }

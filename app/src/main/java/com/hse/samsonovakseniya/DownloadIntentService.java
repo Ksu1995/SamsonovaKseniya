@@ -4,7 +4,6 @@ import android.app.IntentService;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.ResultReceiver;
-import android.provider.SyncStateContract;
 import android.util.Log;
 
 import com.hse.samsonovakseniya.rss.NewsRecord;
@@ -51,14 +50,14 @@ public class DownloadIntentService extends IntentService {
         final Bundle data = new Bundle();
         String[] urls = intent.getStringArrayExtra(URLs_EXTRA);
         List<Record> records = new ArrayList<>();
-        for (int i = 0; i < urls.length; i++) {
+        for (String url1 : urls) {
             URL url = null;
             try {
-                url = new URL(urls[i]);
+                url = new URL(url1);
             } catch (MalformedURLException e) {
                 e.printStackTrace();
             }
-            HttpURLConnection conn = null;
+            HttpURLConnection conn;
             try {
                 conn = (HttpURLConnection) url.openConnection();
                 if (conn.getResponseCode() == HttpURLConnection.HTTP_OK) {
@@ -96,20 +95,23 @@ public class DownloadIntentService extends IntentService {
                             case XmlPullParser.TEXT:
                                 String text = xmlPullParser.getText();
                                 Log.i(TAG, "TEXT " + currentTag + text);
-                                text.trim();
                                 if (record == null || text.length() == 0 || text.equals("")) {
                                     break;
                                 }
-                                if (currentTag.equals("title")) {
-                                    record.setTitle(text);
-                                } else if (currentTag.equals("description")) {
-                                    record.setDescription(text);
-                                } else if (currentTag.equals("pubDate")) {
-                                    try {
-                                        record.setDate(new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss Z").parse(text));
-                                    } catch (ParseException e) {
-                                        e.printStackTrace();
-                                    }
+                                switch (currentTag) {
+                                    case "title":
+                                        record.setTitle(text);
+                                        break;
+                                    case "description":
+                                        record.setDescription(text);
+                                        break;
+                                    case "pubDate":
+                                        try {
+                                            record.setDate(new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss Z").parse(text));
+                                        } catch (ParseException e) {
+                                            e.printStackTrace();
+                                        }
+                                        break;
                                 }
                                 currentTag = "";
                                 break;
@@ -120,9 +122,7 @@ public class DownloadIntentService extends IntentService {
                         event = xmlPullParser.getEventType();
                     }
                 }
-            } catch (XmlPullParserException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
+            } catch (XmlPullParserException | IOException e) {
                 e.printStackTrace();
             }
         }

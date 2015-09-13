@@ -11,16 +11,16 @@ import java.util.Date;
  */
 public interface Record extends Parcelable, Comparable {
 
-    public String getOrigin();
-    public String getTitle();
-    public String getDescription();
-    public Date getDate();
-    public String getImageUrl();
+    String getOrigin();
+    String getTitle();
+    String getDescription();
+    Date getDate();
+    String getImageUrl();
 
-    public void setOrigin(String origin);
-    public void setTitle(String title);
-    public void setDescription(String description);
-    public void setDate(Date date);
-    public void setImageUrl(String url);
+    void setOrigin(String origin);
+    void setTitle(String title);
+    void setDescription(String description);
+    void setDate(Date date);
+    void setImageUrl(String url);
 
 }
