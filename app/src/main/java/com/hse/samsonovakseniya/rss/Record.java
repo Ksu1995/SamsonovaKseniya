@@ -1,11 +1,14 @@
 package com.hse.samsonovakseniya.rss;
 
+import android.os.Parcelable;
+
+import java.util.Comparator;
 import java.util.Date;
 
 /**
  * Created by User on 11.09.2015.
  */
-public interface Record {
+public interface Record extends Parcelable, Comparable {
 
     public String getOrigin();
     public String getTitle();

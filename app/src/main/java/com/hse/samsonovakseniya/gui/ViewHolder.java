@@ -15,15 +15,21 @@ public class ViewHolder extends RecyclerView.ViewHolder {
 
     private TextView mTitle;
     private ImageView mImage;
+    private TextView mDate;
 
     public ViewHolder(View itemView) {
         super(itemView);
         mTitle = (TextView) itemView.findViewById(R.id.title_text);
         mImage = (ImageView) itemView.findViewById(R.id.news_image);
+        mDate = (TextView) itemView.findViewById(R.id.date_text);
     }
 
     public TextView getTitle() {
         return mTitle;
+    }
+
+    public TextView getDate() {
+        return mDate;
     }
 
     public ImageView getImage() {

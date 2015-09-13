@@ -4,11 +4,16 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import com.hse.samsonovakseniya.gui.RecyclerViewAdapter;
 import com.hse.samsonovakseniya.rss.NewsRecord;
@@ -26,15 +31,22 @@ import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
-public class NewsActivity extends Activity {
+public class NewsActivity extends Activity implements DownloadResultsReceiver.Receiver, View.OnClickListener {
+    private DownloadResultsReceiver mReceiver;
+    private ProgressBar mProgress;
+    private RecyclerView mRecyclerView;
+    private List<Record> mRecords;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_news);
-
+        mProgress = (ProgressBar) findViewById(R.id.progressBar);
+        mReceiver = new DownloadResultsReceiver(new Handler());
+        mReceiver.setReceiver(this);
         //List<Record> records = new ArrayList<>();
 
 
@@ -47,71 +59,26 @@ public class NewsActivity extends Activity {
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setItemAnimator(itemAnimator);*/
         Intent intent = new Intent(getApplicationContext(), DownloadIntentService.class);
-        intent.putExtra(DownloadIntentService.URL_EXTRA, "http://lenta.ru/rss");
+        intent.putExtra(DownloadIntentService.URLs_EXTRA, new String[] {
+                "http://lenta.ru/rss",
+                "http://www.gazeta.ru/export/rss/lenta.xml"});
+        intent.putExtra(DownloadIntentService.RECEIVER, mReceiver);
         startService(intent);
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mReceiver = new DownloadResultsReceiver(new Handler());
+        mReceiver.setReceiver(this);
+    }
 
-@Override
-protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        /*switch (resultCode) {
-            case DownloadIntentService.INVALID_URL_CODE:
-                break;
-            case DownloadIntentService.ERROR_CODE:
-                break;
-            case DownloadIntentService.RESULT_CODE:
-                List<Record> records = new ArrayList<>();
-                int event = 0;
-                try {
-                    event = xmlPullParser.getEventType();
-                    Record record = null;
-                    while (event != XmlPullParser.END_DOCUMENT) {
+    @Override
+    protected void onPause() {
+        super.onPause();
+        mReceiver.setReceiver(null);
+    }
 
-                        switch (event) {
-                            case XmlPullParser.START_DOCUMENT:
-                            case XmlPullParser.START_TAG:
-                                if (xmlPullParser.getName().equals("item")) {
-                                    record = new NewsRecord();
-                                } else if (xmlPullParser.getName().equals("title")) {
-                                    record.setTitle(xmlPullParser.getText());
-                                } else if (xmlPullParser.getName().equals("description")) {
-                                    record.setDescription(xmlPullParser.getText());
-                                } else if (xmlPullParser.getName().equals("pubDate")) {
-                                    record.setDate(new SimpleDateFormat().parse(xmlPullParser.getText()));
-                                }
-                                break;
-                            case XmlPullParser.END_TAG:
-                                if (xmlPullParser.getName().equals("item")) {
-                                    records.add(record);
-                                }
-                                break;
-                            case XmlPullParser.TEXT:
-                                break;
-                            default:
-                                break;
-                        }
-
-                        xmlPullParser.next();
-                    }
-                    RecyclerView recyclerView = (RecyclerView)findViewById(R.id.recyclerView);
-                    RecyclerViewAdapter adapter = new RecyclerViewAdapter(records);
-                    LinearLayoutManager layoutManager = new LinearLayoutManager(NewsActivity.this);
-                    RecyclerView.ItemAnimator itemAnimator = new DefaultItemAnimator();
-
-                    recyclerView.setAdapter(adapter);
-                    recyclerView.setLayoutManager(layoutManager);
-                    recyclerView.setItemAnimator(itemAnimator);
-
-                } catch (XmlPullParserException e) {
-                    e.printStackTrace();
-                } catch (ParseException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-        }*/
-    super.onActivityResult(requestCode, resultCode, data);
-}
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -132,5 +99,41 @@ protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onReceiveResult(int resultCode, Bundle data) {
+        switch (resultCode) {
+            case DownloadIntentService.STATUS_RUNNING :
+                mProgress.setVisibility(View.VISIBLE);
+                Toast.makeText(this, "Service started with data: "
+                             , Toast.LENGTH_SHORT).show();
+                break;
+            case DownloadIntentService.STATUS_FINISHED :
+                mProgress.setVisibility(View.INVISIBLE);
+                mRecyclerView = (RecyclerView)findViewById(R.id.recyclerView);
+                mRecords = data.
+                        <Record>getParcelableArrayList(DownloadIntentService.NEWS_RECORDS);
+                for (int i = 0; i < mRecords.size(); i++){
+                    Log.i("rec ", mRecords.get(i).getTitle());
+                }
+                Collections.sort(mRecords);
+                RecyclerViewAdapter adapter = new RecyclerViewAdapter(mRecords, this);
+                LinearLayoutManager layoutManager = new LinearLayoutManager(NewsActivity.this);
+                RecyclerView.ItemAnimator itemAnimator = new DefaultItemAnimator();
+                mRecyclerView.setAdapter(adapter);
+                mRecyclerView.setLayoutManager(layoutManager);
+                mRecyclerView.setItemAnimator(itemAnimator);
+                Toast.makeText(this, "Service finished with data: "
+                        , Toast.LENGTH_SHORT).show();
+                break;
+        }
+    }
+
+    @Override
+    public void onClick(View v) {
+        Intent intent = new Intent(v.getContext(), AdvancedNewsRecordActivity.class);
+        intent.putExtra(AdvancedNewsRecordActivity.RECORD, mRecords.get(mRecyclerView.indexOfChild(v)));
+        startActivity(intent);
     }
 }
