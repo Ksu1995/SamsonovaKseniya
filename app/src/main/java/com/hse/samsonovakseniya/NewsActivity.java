@@ -2,13 +2,11 @@ package com.hse.samsonovakseniya;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -16,25 +14,12 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.hse.samsonovakseniya.gui.RecyclerViewAdapter;
-import com.hse.samsonovakseniya.rss.NewsRecord;
 import com.hse.samsonovakseniya.rss.Record;
-
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
-import org.xmlpull.v1.XmlPullParserFactory;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class NewsActivity extends Activity implements DownloadResultsReceiver.Receiver, View.OnClickListener {
+public class NewsActivity extends Activity implements DownloadResultsReceiver.Receiver {
+
     private DownloadResultsReceiver mReceiver;
     private ProgressBar mProgress;
     private RecyclerView mRecyclerView;
@@ -49,8 +34,7 @@ public class NewsActivity extends Activity implements DownloadResultsReceiver.Re
         mReceiver.setReceiver(this);
         Intent intent = new Intent(getApplicationContext(), DownloadIntentService.class);
         intent.putExtra(DownloadIntentService.URLs_EXTRA, new String[] {
-                "http://lenta.ru/rss"});//,
-                //"http://www.gazeta.ru/export/rss/lenta.xml"});
+                "http://lenta.ru/rss", "http://www.gazeta.ru/export/rss/lenta.xml"});
         intent.putExtra(DownloadIntentService.RECEIVER, mReceiver);
         startService(intent);
     }
@@ -104,7 +88,7 @@ public class NewsActivity extends Activity implements DownloadResultsReceiver.Re
                 mRecords = data.
                         <Record>getParcelableArrayList(DownloadIntentService.NEWS_RECORDS);
                 Collections.sort(mRecords);
-                RecyclerViewAdapter adapter = new RecyclerViewAdapter(mRecords, this, getApplicationContext());
+                RecyclerViewAdapter adapter = new RecyclerViewAdapter(mRecords, getApplicationContext());
                 LinearLayoutManager layoutManager = new LinearLayoutManager(NewsActivity.this);
                 RecyclerView.ItemAnimator itemAnimator = new DefaultItemAnimator();
                 mRecyclerView.setAdapter(adapter);
@@ -116,11 +100,4 @@ public class NewsActivity extends Activity implements DownloadResultsReceiver.Re
         }
     }
 
-    @Override
-    public void onClick(View v) {
-        Intent intent = new Intent(v.getContext(), AdvancedNewsRecordActivity.class);
-        Log.i("INDEX", "" + mRecyclerView.indexOfChild(v));
-        intent.putExtra(AdvancedNewsRecordActivity.RECORD, mRecords.get(mRecyclerView.indexOfChild(v)));
-        startActivity(intent);
-    }
 }

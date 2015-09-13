@@ -16,7 +16,6 @@ public interface Record extends Parcelable, Comparable {
     public String getDescription();
     public Date getDate();
     public String getImageUrl();
-    //public Bitmap getImage();
 
     public void setOrigin(String origin);
     public void setTitle(String title);

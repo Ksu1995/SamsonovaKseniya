@@ -45,7 +45,9 @@ public class AdvancedNewsRecordActivity extends Activity {
         mDate.setText(DateUtils.getRelativeTimeSpanString(record.getDate().getTime(), System.currentTimeMillis(),
                 0, DateUtils.FORMAT_ABBREV_RELATIVE));
         mDescription.setText(record.getDescription());
-        Picasso.with(this).load(record.getImageUrl()).into(mImage);
+        if (!record.getImageUrl().isEmpty()) {
+            Picasso.with(this).load(record.getImageUrl()).into(mImage);
+        }
     }
 
 }

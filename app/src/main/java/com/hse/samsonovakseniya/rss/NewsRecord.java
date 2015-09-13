@@ -153,6 +153,6 @@ public class NewsRecord implements Record {
     public int compareTo(Object another) {
         Date datel =  this.getDate();
         Date dater = ((NewsRecord) another).getDate();
-        return datel.compareTo(dater);
+        return dater.compareTo(datel);
     }
 }
