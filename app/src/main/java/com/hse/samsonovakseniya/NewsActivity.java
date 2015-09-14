@@ -21,6 +21,9 @@ public class NewsActivity extends Activity implements DownloadResultsReceiver.Re
 
     private DownloadResultsReceiver mReceiver;
     private ProgressBar mProgress;
+    private final String[] sUrls = new String[]{
+            "http://lenta.ru/rss",
+            "http://www.gazeta.ru/export/rss/lenta.xml"};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,8 +33,7 @@ public class NewsActivity extends Activity implements DownloadResultsReceiver.Re
         mReceiver = new DownloadResultsReceiver(new Handler());
         mReceiver.setReceiver(this);
         Intent intent = new Intent(getApplicationContext(), DownloadIntentService.class);
-        intent.putExtra(DownloadIntentService.URLs_EXTRA, new String[]{
-                "http://lenta.ru/rss", "http://www.gazeta.ru/export/rss/lenta.xml"});
+        intent.putExtra(DownloadIntentService.URLs_EXTRA, sUrls);
         intent.putExtra(DownloadIntentService.RECEIVER, mReceiver);
         startService(intent);
     }
@@ -79,18 +81,17 @@ public class NewsActivity extends Activity implements DownloadResultsReceiver.Re
                 break;
             case DownloadIntentService.STATUS_FINISHED :
                 mProgress.setVisibility(View.INVISIBLE);
-                RecyclerView mRecyclerView = (RecyclerView) findViewById(R.id.recyclerView);
-                List<Record> mRecords = data.
+                RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
+                List<Record> records = data.
                         getParcelableArrayList(DownloadIntentService.NEWS_RECORDS);
-                Collections.sort(mRecords);
-                RecyclerViewAdapter adapter = new RecyclerViewAdapter(mRecords, getApplicationContext());
+                Collections.sort(records);
+                RecyclerViewAdapter adapter = new RecyclerViewAdapter(records, getApplicationContext());
                 LinearLayoutManager layoutManager = new LinearLayoutManager(NewsActivity.this);
                 RecyclerView.ItemAnimator itemAnimator = new DefaultItemAnimator();
-                mRecyclerView.setAdapter(adapter);
-                mRecyclerView.setLayoutManager(layoutManager);
-                mRecyclerView.setItemAnimator(itemAnimator);
+                recyclerView.setAdapter(adapter);
+                recyclerView.setLayoutManager(layoutManager);
+                recyclerView.setItemAnimator(itemAnimator);
                 break;
         }
     }
-
 }

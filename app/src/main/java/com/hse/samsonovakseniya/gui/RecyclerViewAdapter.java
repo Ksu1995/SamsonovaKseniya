@@ -32,7 +32,6 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder> {
     public ViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
         View view = LayoutInflater.from(viewGroup.getContext()).
                 inflate(R.layout.record_view, viewGroup, false);
-        view.setOnClickListener(new OnClickListener(mRecords.get(i)));
         return new ViewHolder(view);
     }
 
@@ -45,7 +44,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder> {
         if(!record.getImageUrl().isEmpty()) {
             Picasso.with(mContext).load(record.getImageUrl()).into(viewHolder.getImage());
         }
-        viewHolder.itemView.setOnClickListener(new OnClickListener(mRecords.get(i)));
+        viewHolder.itemView.setOnClickListener(new OnClickListener(mRecords.get(i), mContext));
 
     }
 
@@ -54,12 +53,14 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder> {
         return mRecords.size();
     }
 
-    class OnClickListener implements View.OnClickListener {
+    static class OnClickListener implements View.OnClickListener {
 
         Record mRecord;
+        Context mContext;
 
-        public OnClickListener(Record record) {
+        public OnClickListener(Record record, Context context) {
             mRecord = record;
+            mContext = context;
         }
         @Override
         public void onClick(View v) {

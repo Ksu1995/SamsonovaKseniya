@@ -22,17 +22,17 @@ public class AdvancedNewsRecordActivity extends Activity {
         setContentView(R.layout.advanced_record_view);
         final Record record = getIntent().getParcelableExtra(RECORD);
 
-        TextView mTitle = (TextView) findViewById(R.id.title_text);
-        ImageView mImage = (ImageView) findViewById(R.id.news_image);
-        TextView mDescription = (TextView) findViewById(R.id.description_text);
-        TextView mDate = (TextView) findViewById(R.id.date_text);
+        TextView title = (TextView) findViewById(R.id.title_text);
+        ImageView image = (ImageView) findViewById(R.id.news_image);
+        TextView description = (TextView) findViewById(R.id.description_text);
+        TextView date = (TextView) findViewById(R.id.date_text);
 
-        mTitle.setText(record.getTitle());
-        mDate.setText(DateUtils.getRelativeTimeSpanString(record.getDate().getTime(), System.currentTimeMillis(),
+        title.setText(record.getTitle());
+        date.setText(DateUtils.getRelativeTimeSpanString(record.getDate().getTime(), System.currentTimeMillis(),
                 0, DateUtils.FORMAT_ABBREV_RELATIVE));
-        mDescription.setText(record.getDescription());
+        description.setText(record.getDescription());
         if (!record.getImageUrl().isEmpty()) {
-            Picasso.with(this).load(record.getImageUrl()).into(mImage);
+            Picasso.with(this).load(record.getImageUrl()).into(image);
         }
     }
 

@@ -4,6 +4,8 @@ import android.app.IntentService;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.ResultReceiver;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.hse.samsonovakseniya.rss.NewsRecord;
@@ -50,10 +52,10 @@ public class DownloadIntentService extends IntentService {
         final Bundle data = new Bundle();
         String[] urls = intent.getStringArrayExtra(URLs_EXTRA);
         List<Record> records = new ArrayList<>();
-        for (String url1 : urls) {
+        for (String urlStr : urls) {
             URL url = null;
             try {
-                url = new URL(url1);
+                url = new URL(urlStr);
             } catch (MalformedURLException e) {
                 e.printStackTrace();
             }
@@ -77,14 +79,7 @@ public class DownloadIntentService extends IntentService {
                             case XmlPullParser.START_TAG:
                                 Log.i(TAG, "START_TAG" + xmlPullParser.getName());
                                 currentTag = xmlPullParser.getName();
-                                if (currentTag.equals("item")) {
-                                    record = new NewsRecord();
-                                    Log.i(TAG, "ITEM " + currentTag + xmlPullParser.getAttributeCount());
-                                }
-                                if (record != null && currentTag.equals("enclosure")) {
-                                    record.setImageUrl(xmlPullParser.getAttributeValue(null, "url"));//null
-                                    Log.i(TAG, "URL " + currentTag + xmlPullParser.getAttributeValue(null, "url"));//-1
-                                }
+                                record = onTagStart(xmlPullParser, currentTag, record);
                                 break;
                             case XmlPullParser.END_TAG:
                                 if (xmlPullParser.getName().equals("item")) {
@@ -93,26 +88,7 @@ public class DownloadIntentService extends IntentService {
                                 }
                                 break;
                             case XmlPullParser.TEXT:
-                                String text = xmlPullParser.getText();
-                                Log.i(TAG, "TEXT " + currentTag + text);
-                                if (record == null || text.length() == 0 || text.equals("")) {
-                                    break;
-                                }
-                                switch (currentTag) {
-                                    case "title":
-                                        record.setTitle(text);
-                                        break;
-                                    case "description":
-                                        record.setDescription(text);
-                                        break;
-                                    case "pubDate":
-                                        try {
-                                            record.setDate(new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss Z").parse(text));
-                                        } catch (ParseException e) {
-                                            e.printStackTrace();
-                                        }
-                                        break;
-                                }
+                                onTagText(xmlPullParser, currentTag, record);
                                 currentTag = "";
                                 break;
                             default:
@@ -128,5 +104,42 @@ public class DownloadIntentService extends IntentService {
         }
         data.putParcelableArrayList(NEWS_RECORDS, (ArrayList<Record>) records);
         receiver.send(STATUS_FINISHED, data);
+    }
+
+    @Nullable
+    private Record onTagStart(XmlPullParser xmlPullParser, String currentTag, Record record) {
+        if (currentTag.equals("item")) {
+            record = new NewsRecord();
+            Log.i(TAG, "ITEM " + currentTag + xmlPullParser.getAttributeCount());
+        }
+        if (record != null && currentTag.equals("enclosure")) {
+            record.setImageUrl(xmlPullParser.getAttributeValue(null, "url"));
+            Log.i(TAG, "URL " + currentTag + xmlPullParser.getAttributeValue(null, "url"));
+        }
+        return record;
+    }
+
+    @NonNull
+    private void onTagText(XmlPullParser xmlPullParser, String currentTag, Record record) {
+        String text = xmlPullParser.getText();
+        Log.i(TAG, "TEXT " + currentTag + text);
+        if (record == null || text.length() == 0 || text.equals("")) {
+            return;
+        }
+        switch (currentTag) {
+            case "title":
+                record.setTitle(text);
+                break;
+            case "description":
+                record.setDescription(text);
+                break;
+            case "pubDate":
+                try {
+                    record.setDate(new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss Z").parse(text));
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+                break;
+        }
     }
 }
