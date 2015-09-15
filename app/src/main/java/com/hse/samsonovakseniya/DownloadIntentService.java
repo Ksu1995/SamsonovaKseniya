@@ -53,15 +53,18 @@ public class DownloadIntentService extends IntentService {
         String[] urls = intent.getStringArrayExtra(URLs_EXTRA);
         List<Record> records = new ArrayList<>();
         for (String urlStr : urls) {
+            Log.i("EXTRA_URL   ", urlStr);
             URL url = null;
             try {
                 url = new URL(urlStr);
             } catch (MalformedURLException e) {
                 e.printStackTrace();
             }
-            HttpURLConnection conn;
+            HttpURLConnection conn = null;
             try {
                 conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestProperty("User-Agent","");
+                Log.i("RES_CODE", ""+conn.getResponseCode());
                 if (conn.getResponseCode() == HttpURLConnection.HTTP_OK) {
                     InputStream inputStream = conn.getInputStream();
                     XmlPullParserFactory xmlPullParserFactory = XmlPullParserFactory.newInstance();
@@ -70,6 +73,7 @@ public class DownloadIntentService extends IntentService {
                     int event = xmlPullParser.getEventType();
                     String currentTag = "";
                     Record record = null;
+                    String origin = null;
                     while (event != XmlPullParser.END_DOCUMENT) {
                         switch (event) {
                             case XmlPullParser.START_DOCUMENT: {
@@ -84,11 +88,12 @@ public class DownloadIntentService extends IntentService {
                             case XmlPullParser.END_TAG:
                                 if (xmlPullParser.getName().equals("item")) {
                                     Log.i(TAG, record.toString());
+                                    record.setOrigin(origin);
                                     records.add(record);
                                 }
                                 break;
                             case XmlPullParser.TEXT:
-                                onTagText(xmlPullParser, currentTag, record);
+                                origin = onTagText(xmlPullParser, currentTag, record, origin);
                                 currentTag = "";
                                 break;
                             default:
@@ -100,6 +105,10 @@ public class DownloadIntentService extends IntentService {
                 }
             } catch (XmlPullParserException | IOException e) {
                 e.printStackTrace();
+            } finally {
+                if (conn != null) {
+                    conn.disconnect();
+                }
             }
         }
         data.putParcelableArrayList(NEWS_RECORDS, (ArrayList<Record>) records);
@@ -120,11 +129,14 @@ public class DownloadIntentService extends IntentService {
     }
 
     @NonNull
-    private void onTagText(XmlPullParser xmlPullParser, String currentTag, Record record) {
+    private String onTagText(XmlPullParser xmlPullParser, String currentTag, Record record, String origin) {
         String text = xmlPullParser.getText();
         Log.i(TAG, "TEXT " + currentTag + text);
         if (record == null || text.length() == 0 || text.equals("")) {
-            return;
+            if (currentTag.equals("link") && origin == null){
+                return text;
+            }
+            return origin;
         }
         switch (currentTag) {
             case "title":
@@ -141,5 +153,6 @@ public class DownloadIntentService extends IntentService {
                 }
                 break;
         }
+        return origin;
     }
 }

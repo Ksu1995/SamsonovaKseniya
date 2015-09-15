@@ -26,6 +26,7 @@ public class AdvancedNewsRecordActivity extends Activity {
         ImageView image = (ImageView) findViewById(R.id.news_image);
         TextView description = (TextView) findViewById(R.id.description_text);
         TextView date = (TextView) findViewById(R.id.date_text);
+        TextView origin = (TextView) findViewById(R.id.origin_text);
 
         title.setText(record.getTitle());
         date.setText(DateUtils.getRelativeTimeSpanString(record.getDate().getTime(), System.currentTimeMillis(),
@@ -34,6 +35,7 @@ public class AdvancedNewsRecordActivity extends Activity {
         if (!record.getImageUrl().isEmpty()) {
             Picasso.with(this).load(record.getImageUrl()).into(image);
         }
+        origin.setText(record.getOrigin());
     }
 
 }

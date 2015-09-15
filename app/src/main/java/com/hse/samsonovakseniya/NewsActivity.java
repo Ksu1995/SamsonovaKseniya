@@ -12,6 +12,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
 
+import com.baoyz.widget.PullRefreshLayout;
 import com.hse.samsonovakseniya.gui.RecyclerViewAdapter;
 import com.hse.samsonovakseniya.rss.Record;
 import java.util.Collections;
@@ -20,8 +21,9 @@ import java.util.List;
 public class NewsActivity extends Activity implements DownloadResultsReceiver.Receiver {
 
     private DownloadResultsReceiver mReceiver;
-    private ProgressBar mProgress;
-    private final String[] sUrls = new String[]{
+    private PullRefreshLayout mRefreshLayout;
+    private RecyclerView mRecyclerView;
+    private static final String[] sUrls = new String[]{
             "http://lenta.ru/rss",
             "http://www.gazeta.ru/export/rss/lenta.xml"};
 
@@ -29,13 +31,25 @@ public class NewsActivity extends Activity implements DownloadResultsReceiver.Re
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_news);
-        mProgress = (ProgressBar) findViewById(R.id.progressBar);
         mReceiver = new DownloadResultsReceiver(new Handler());
         mReceiver.setReceiver(this);
-        Intent intent = new Intent(getApplicationContext(), DownloadIntentService.class);
-        intent.putExtra(DownloadIntentService.URLs_EXTRA, sUrls);
-        intent.putExtra(DownloadIntentService.RECEIVER, mReceiver);
-        startService(intent);
+        mRecyclerView = (RecyclerView) findViewById(R.id.recyclerView);
+        LinearLayoutManager layoutManager = new LinearLayoutManager(NewsActivity.this);
+        RecyclerView.ItemAnimator itemAnimator = new DefaultItemAnimator();
+        mRecyclerView.setLayoutManager(layoutManager);
+        mRecyclerView.setItemAnimator(itemAnimator);
+        mRefreshLayout = (PullRefreshLayout) findViewById(R.id.swipeRefreshLayout);
+        mRefreshLayout.setRefreshStyle(PullRefreshLayout.STYLE_MATERIAL);
+        mRefreshLayout.setOnRefreshListener(new PullRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                Intent intent = new Intent(getApplicationContext(), DownloadIntentService.class);
+                intent.putExtra(DownloadIntentService.URLs_EXTRA, sUrls);
+                intent.putExtra(DownloadIntentService.RECEIVER, mReceiver);
+                startService(intent);
+            }
+        });
+
     }
 
     @Override
@@ -77,21 +91,15 @@ public class NewsActivity extends Activity implements DownloadResultsReceiver.Re
     public void onReceiveResult(int resultCode, Bundle data) {
         switch (resultCode) {
             case DownloadIntentService.STATUS_RUNNING :
-                mProgress.setVisibility(View.VISIBLE);
                 break;
             case DownloadIntentService.STATUS_FINISHED :
-                mProgress.setVisibility(View.INVISIBLE);
-                RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
                 List<Record> records = data.
                         getParcelableArrayList(DownloadIntentService.NEWS_RECORDS);
                 Collections.sort(records);
                 RecyclerViewAdapter adapter = new RecyclerViewAdapter(records, getApplicationContext());
-                LinearLayoutManager layoutManager = new LinearLayoutManager(NewsActivity.this);
-                RecyclerView.ItemAnimator itemAnimator = new DefaultItemAnimator();
-                recyclerView.setAdapter(adapter);
-                recyclerView.setLayoutManager(layoutManager);
-                recyclerView.setItemAnimator(itemAnimator);
+                mRecyclerView.setAdapter(adapter);
                 break;
         }
+        mRefreshLayout.setRefreshing(false);
     }
 }

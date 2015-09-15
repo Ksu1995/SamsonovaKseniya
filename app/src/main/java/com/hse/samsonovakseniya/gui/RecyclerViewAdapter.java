@@ -30,7 +30,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder> {
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
-        View view = LayoutInflater.from(viewGroup.getContext()).
+        View view = LayoutInflater.from(mContext).
                 inflate(R.layout.record_view, viewGroup, false);
         return new ViewHolder(view);
     }
@@ -44,6 +44,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<ViewHolder> {
         if(!record.getImageUrl().isEmpty()) {
             Picasso.with(mContext).load(record.getImageUrl()).into(viewHolder.getImage());
         }
+        viewHolder.getOrigin().setText(record.getOrigin());
         viewHolder.itemView.setOnClickListener(new OnClickListener(mRecords.get(i), mContext));
 
     }
