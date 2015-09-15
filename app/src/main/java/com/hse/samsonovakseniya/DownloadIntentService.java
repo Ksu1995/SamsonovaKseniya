@@ -10,6 +10,7 @@ import android.util.Log;
 
 import com.hse.samsonovakseniya.rss.NewsRecord;
 import com.hse.samsonovakseniya.rss.Record;
+import com.hse.samsonovakseniya.rss.RssPullParser;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -70,37 +71,35 @@ public class DownloadIntentService extends IntentService {
                     XmlPullParserFactory xmlPullParserFactory = XmlPullParserFactory.newInstance();
                     XmlPullParser xmlPullParser = xmlPullParserFactory.newPullParser();
                     xmlPullParser.setInput(inputStream, null);
-                    int event = xmlPullParser.getEventType();
-                    String currentTag = "";
-                    Record record = null;
-                    String origin = null;
-                    while (event != XmlPullParser.END_DOCUMENT) {
-                        switch (event) {
+                    RssPullParser rssPullParser = new RssPullParser(xmlPullParser);
+
+                    while (rssPullParser.getEvent() != XmlPullParser.END_DOCUMENT) {
+                        switch (rssPullParser.getEvent()) {
                             case XmlPullParser.START_DOCUMENT: {
                                 Log.i(TAG, "START_DOCUMENT");
                                 break;
                             }
                             case XmlPullParser.START_TAG:
                                 Log.i(TAG, "START_TAG" + xmlPullParser.getName());
-                                currentTag = xmlPullParser.getName();
-                                record = onTagStart(xmlPullParser, currentTag, record);
+                                rssPullParser.setCurrentTag(xmlPullParser.getName());
+                                rssPullParser.onTagStart();
                                 break;
                             case XmlPullParser.END_TAG:
                                 if (xmlPullParser.getName().equals("item")) {
-                                    Log.i(TAG, record.toString());
-                                    record.setOrigin(origin);
-                                    records.add(record);
+                                    Log.i(TAG, rssPullParser.getRecord().toString());
+                                    rssPullParser.getRecord().setOrigin(rssPullParser.getOrigin());
+                                    records.add(rssPullParser.getRecord());
                                 }
                                 break;
                             case XmlPullParser.TEXT:
-                                origin = onTagText(xmlPullParser, currentTag, record, origin);
-                                currentTag = "";
+                                rssPullParser.onTagText();
+                                rssPullParser.setCurrentTag("");
                                 break;
                             default:
                                 break;
                         }
                         xmlPullParser.next();
-                        event = xmlPullParser.getEventType();
+                        rssPullParser.setEvent();
                     }
                 }
             } catch (XmlPullParserException | IOException e) {
@@ -115,44 +114,4 @@ public class DownloadIntentService extends IntentService {
         receiver.send(STATUS_FINISHED, data);
     }
 
-    @Nullable
-    private Record onTagStart(XmlPullParser xmlPullParser, String currentTag, Record record) {
-        if (currentTag.equals("item")) {
-            record = new NewsRecord();
-            Log.i(TAG, "ITEM " + currentTag + xmlPullParser.getAttributeCount());
-        }
-        if (record != null && currentTag.equals("enclosure")) {
-            record.setImageUrl(xmlPullParser.getAttributeValue(null, "url"));
-            Log.i(TAG, "URL " + currentTag + xmlPullParser.getAttributeValue(null, "url"));
-        }
-        return record;
-    }
-
-    @NonNull
-    private String onTagText(XmlPullParser xmlPullParser, String currentTag, Record record, String origin) {
-        String text = xmlPullParser.getText();
-        Log.i(TAG, "TEXT " + currentTag + text);
-        if (record == null || text.length() == 0 || text.equals("")) {
-            if (currentTag.equals("link") && origin == null){
-                return text;
-            }
-            return origin;
-        }
-        switch (currentTag) {
-            case "title":
-                record.setTitle(text);
-                break;
-            case "description":
-                record.setDescription(text);
-                break;
-            case "pubDate":
-                try {
-                    record.setDate(new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss Z").parse(text));
-                } catch (ParseException e) {
-                    e.printStackTrace();
-                }
-                break;
-        }
-        return origin;
-    }
 }
