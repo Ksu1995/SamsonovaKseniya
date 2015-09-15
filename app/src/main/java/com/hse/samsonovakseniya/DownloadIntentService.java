@@ -43,7 +43,6 @@ public class DownloadIntentService extends IntentService {
 
     public DownloadIntentService() {
         super(TAG);
-
     }
 
     @Override
